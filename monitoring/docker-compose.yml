@@ -1,0 +1,29 @@
+services:
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: monitoring_cadvisor
+    restart: always
+    privileged: true
+    devices:
+      - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    # اتصال اجباری به شبکه عمومی ترافیک
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      # ست کردن دقیق ساب‌دومین
+      - "traefik.http.routers.cadvisor.rule=Host(`cadvisor.devopspractice.ir`)"
+      - "traefik.http.routers.cadvisor.entrypoints=websecure"
+      - "traefik.http.routers.cadvisor.tls.certresolver=myresolver"
+      # معرفی دقیق پورت داخلی cAdvisor به لودبالانسر ترافیک
+      - "traefik.http.services.cadvisor.loadbalancer.server.port=8080"
+
+networks:
+  traefik-public:
+    external: true
